@@ -8,21 +8,18 @@ function loadCSV() {
 
     Papa.parse(file, {
         header: true,
+        dynamicTyping: true,  // Auto-convert numbers, dates, etc.
         skipEmptyLines: true,
         complete: function(results) {
-            csvData = results.data.map(row => {
-                // Convert numeric fields to numbers
-                Object.keys(row).forEach(key => {
-                    if (!isNaN(row[key]) && row[key] !== '') {
-                        row[key] = +row[key];
-                    }
-                });
-                return row;
-            });
+            csvData = results.data;
+            if (results.errors.length) {
+                console.error('CSV Parse Errors:', results.errors);
+                alert('Errors parsing CSV. Check console for details.');
+            }
             displayPreview();
         },
         error: function(err) {
-            alert('Error parsing CSV: ' + err.message);
+            alert('Error loading CSV: ' + err.message);
         }
     });
 }
@@ -31,7 +28,7 @@ function displayPreview() {
     const table = document.getElementById('dataTable');
     table.innerHTML = '';
     
-    if (!csvData.length) return alert('No data in CSV');
+    if (!csvData.length || !csvData[0]) return alert('No data in CSV');
     
     // Headers
     const thead = document.createElement('thead');
@@ -75,20 +72,23 @@ function renderChart() {
     const isStacked = chartTypeSelect.selectedOptions[0].dataset.stacked === 'true';
     const isArea = chartTypeSelect.selectedOptions[0].dataset.area === 'true';
 
-    if (!xCol && type !== 'histogram' && type !== 'boxplot') return alert('Select X column');
     if (!yCol) return alert('Select Y column');
+    if (type !== 'histogram' && type !== 'boxplot' && !xCol) return alert('Select X column');
     if (type === 'boxplot' && !groupCol) return alert('Boxplot requires a Group column');
 
-    const ctx = document.getElementById('myChart').getContext('2d');
+    const canvas = document.getElementById('myChart');
+    const ctx = canvas.getContext('2d');
     if (chart) {
-        chart.destroy(); // Destroy previous chart
+        chart.destroy();
+        chart = null;  // Clear reference to avoid resize issues
     }
 
-    let datasets = [];
     let labels = [];
+    let datasets = [];
 
-    if (groupCol && type !== 'pie' && type !== 'boxplot') {
-        const groups = [...new Set(csvData.map(d => d[groupCol]))].filter(g => g !== undefined && g !== '');
+    if (groupCol && type !== 'pie' && type !== 'histogram' && type !== 'boxplot') {
+        const groups = [...new Set(csvData.map(d => d[groupCol]).filter(g => g != null))];
+        if (!groups.length) return alert('No valid groups found');
         datasets = groups.map((group, i) => {
             const subset = csvData.filter(d => d[groupCol] === group);
             return {
@@ -99,9 +99,9 @@ function renderChart() {
                 fill: isArea
             };
         });
-        labels = [...new Set(csvData.map(d => d[xCol]))].filter(l => l !== undefined && l !== '');
-    } else if (type !== 'pie' && type !== 'boxplot' && type !== 'histogram') {
-        labels = csvData.map(d => d[xCol]);
+        labels = [...new Set(csvData.map(d => d[xCol]).filter(l => l != null))];
+    } else if (type !== 'pie' && type !== 'histogram' && type !== 'boxplot') {
+        labels = csvData.map(d => d[xCol]).filter(l => l != null);
         datasets = [{
             label: yCol,
             data: csvData.map(d => d[yCol]),
@@ -116,6 +116,7 @@ function renderChart() {
         data: { labels, datasets },
         options: {
             responsive: true,
+            maintainAspectRatio: false,  // Helps with resize
             plugins: { title: { display: true, text: `${type.toUpperCase()} Chart` } },
             scales: type !== 'pie' ? { y: { beginAtZero: true } } : {}
         }
@@ -123,22 +124,34 @@ function renderChart() {
 
     // Special cases
     if (type === 'pie') {
+        const aggMap = new Map();
+        csvData.forEach(d => {
+            const key = d[xCol];
+            const val = d[yCol];
+            if (key != null && typeof val === 'number') {
+                aggMap.set(key, (aggMap.get(key) || 0) + val);
+            }
+        });
+        if (!aggMap.size) return alert('No valid data for pie chart');
         config.data = {
-            labels: csvData.map(d => d[xCol]),
+            labels: Array.from(aggMap.keys()),
             datasets: [{
-                data: csvData.map(d => d[yCol]),
-                backgroundColor: csvData.map((_, i) => `hsl(${i * 360 / csvData.length}, 70%, 50%)`)
+                data: Array.from(aggMap.values()),
+                backgroundColor: Array.from(aggMap.keys()).map((_, i) => `hsl(${i * 360 / aggMap.size}, 70%, 50%)`)
             }]
         };
     } else if (type === 'scatter') {
         config.data.datasets = datasets.map(ds => ({
             ...ds,
-            data: csvData.filter(d => groupCol ? d[groupCol] === ds.label : true).map(d => ({ x: d[xCol], y: d[yCol] }))
+            data: csvData
+                .filter(d => (groupCol ? d[groupCol] === ds.label : true) && typeof d[xCol] === 'number' && typeof d[yCol] === 'number')
+                .map(d => ({ x: d[xCol], y: d[yCol] }))
         }));
+        if (!config.data.datasets[0].data.length) return alert('No valid numeric data for scatter');
         config.options.scales.x = { type: 'linear' };
     } else if (type === 'histogram') {
-        // Simple histogram: bin Y values
-        const values = csvData.map(d => d[yCol]).filter(v => !isNaN(v));
+        const values = csvData.map(d => d[yCol]).filter(v => typeof v === 'number');
+        if (!values.length) return alert('No numeric data for histogram');
         const min = Math.min(...values);
         const max = Math.max(...values);
         const bins = 10;
@@ -150,29 +163,22 @@ function renderChart() {
         });
         config.type = 'bar';
         config.data = {
-            labels: Array(bins).fill().map((_, i) => (min + i * binWidth).toFixed(2)),
+            labels: Array(bins).fill().map((_, i) => `${(min + i * binWidth).toFixed(2)} - ${(min + (i + 1) * binWidth).toFixed(2)}`),
             datasets: [{ label: 'Frequency', data: binCounts, backgroundColor: 'rgba(75,192,192,0.5)' }]
         };
     } else if (type === 'boxplot') {
-        const groups = [...new Set(csvData.map(d => d[groupCol]))].filter(g => g !== undefined && g !== '');
-        config.type = 'boxplot';
+        const groups = [...new Set(csvData.map(d => d[groupCol]).filter(g => g != null))];
+        if (!groups.length) return alert('No valid groups for boxplot');
         config.data = {
             labels: groups,
             datasets: [{
                 label: yCol,
-                data: groups.map(group => {
-                    const values = csvData.filter(d => d[groupCol] === group).map(d => d[yCol]).filter(v => !isNaN(v));
-                    return {
-                        min: Math.min(...values),
-                        max: Math.max(...values),
-                        median: values.sort((a, b) => a - b)[Math.floor(values.length / 2)],
-                        q1: values.sort((a, b) => a - b)[Math.floor(values.length / 4)],
-                        q3: values.sort((a, b) => a - b)[Math.floor(3 * values.length / 4)],
-                        items: values
-                    };
-                }),
+                data: groups.map(group => 
+                    csvData.filter(d => d[groupCol] === group).map(d => d[yCol]).filter(v => typeof v === 'number')
+                ),
                 backgroundColor: 'rgba(75,192,192,0.2)',
-                borderColor: 'rgba(75,192,192,1)'
+                borderColor: 'rgba(75,192,192,1)',
+                outlierColor: '#999999'
             }]
         };
     }
@@ -184,8 +190,12 @@ function renderChart() {
         };
     }
 
-    chart = new Chart(ctx, config);
-    document.getElementById('chartContainer').style.display = 'block';
+    try {
+        chart = new Chart(ctx, config);
+        document.getElementById('chartContainer').style.display = 'block';
+    } catch (e) {
+        alert('Error rendering chart: ' + e.message);
+    }
 }
 
 function downloadChart(format) {

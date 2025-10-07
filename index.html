@@ -7,7 +7,7 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin@4.0.0/dist/chartjs-chart-box-and-violin.min.js"></script>
+    <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4.4.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -24,7 +24,7 @@
         
         <!-- Data Preview -->
         <section id="dataPreview" style="display:none;">
-            <h2>Data Preview</h2>
+            <h2>Data Preview (First 5 Rows)</h2>
             <table id="dataTable"></table>
             <div id="columnSelect">
                 <label>X-Axis: <select id="xCol"></select></label>
@@ -53,7 +53,6 @@
         <section id="chartContainer" style="display:none;">
             <canvas id="myChart"></canvas>
             <button onclick="downloadChart('png')">Download PNG</button>
-            <!-- SVG download requires additional plugin; simplified to PNG -->
         </section>
     </div>
     
