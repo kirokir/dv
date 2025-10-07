@@ -9,47 +9,56 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4.4.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <h1>CSV Data Visualizer</h1>
-        <p>Upload a CSV, map columns, and create charts like bar, line, scatter, and more.</p>
+        <p>Upload a CSV or edit data in the table. Visualize with multiple chart types. Supports multiple Y datasets.</p>
         
         <!-- File Upload -->
         <section>
+            <h2>CSV Upload</h2>
             <input type="file" id="csvFile" accept=".csv" />
-            <button onclick="loadCSV()">Load CSV</button>
+            <button onclick="loadCSV()">Parse & Load</button>
         </section>
         
-        <!-- Data Preview -->
+        <!-- Data Table -->
         <section id="dataPreview" style="display:none;">
-            <h2>Data Preview (First 5 Rows)</h2>
-            <table id="dataTable"></table>
+            <h2>Data Table (Double-click to edit)</h2>
+            <div id="dataTable"></div>
+            <button onclick="addColumn()">+ Add Y Column</button>
+            <button onclick="addRow()">+ Add Row</button>
             <div id="columnSelect">
                 <label>X-Axis: <select id="xCol"></select></label>
-                <label>Y-Values: <select id="yCol"></select></label>
+                <label>Y-Values (select multiple): <select id="yCol" multiple></select></label>
                 <label>Group/Color: <select id="groupCol"><option value="">None</option></select></label>
             </div>
         </section>
         
-        <!-- Chart Type -->
+        <!-- Chart Controls -->
         <section id="chartSection" style="display:none;">
-            <h2>Select Chart Type</h2>
-            <select id="chartType">
-                <option value="bar">Bar</option>
-                <option value="bar" data-stacked="true">Stacked Bar</option>
-                <option value="line">Line</option>
-                <option value="line" data-area="true">Area</option>
-                <option value="scatter">Scatter</option>
-                <option value="histogram">Histogram (uses Y col)</option>
-                <option value="boxplot">Boxplot (uses Y and Group)</option>
-                <option value="pie">Pie (uses X as labels, Y as values)</option>
-            </select>
-            <button onclick="renderChart()">Render Chart</button>
+            <h2>Visualize</h2>
+            <label>Chart Type:
+                <select id="chartType">
+                    <option value="bar">Bar</option>
+                    <option value="bar" data-stacked="true">Stacked Bar</option>
+                    <option value="line">Line</option>
+                    <option value="line" data-area="true">Area</option>
+                    <option value="scatter">Scatter</option>
+                    <option value="histogram">Histogram (uses first Y col)</option>
+                    <option value="boxplot">Boxplot (uses Y and Group)</option>
+                    <option value="pie">Pie (uses X as labels, first Y as values)</option>
+                </select>
+            </label>
+            <label>Title: <input type="text" id="chartTitle" placeholder="Enter chart title"></label>
+            <button onclick="renderChart()">Visualize</button>
+            <button onclick="clearChart()">Clear Chart</button>
         </section>
         
-        <!-- Chart Canvas -->
+        <!-- Chart Output -->
         <section id="chartContainer" style="display:none;">
             <canvas id="myChart"></canvas>
             <button onclick="downloadChart('png')">Download PNG</button>

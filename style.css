@@ -1,9 +1,11 @@
 body { font-family: Arial, sans-serif; margin: 20px; }
 .container { max-width: 1200px; margin: auto; }
 section { margin: 20px 0; padding: 10px; border: 1px solid #ddd; }
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-th { background-color: #f2f2f2; }
+#dataTable { margin: 10px 0; }
 label { display: block; margin: 10px 0; }
-select, button { padding: 5px; margin: 5px; }
-#myChart { max-height: 500px; }
+select, button, input[type="text"] { padding: 5px; margin: 5px; }
+#yCol { height: 100px; } /* Multi-select */
+#myChart { max-height: 500px; width: 100%; }
+.handsontable { border-collapse: collapse; }
+.handsontable th, .handsontable td { border: 1px solid #ddd; padding: 8px; }
+.handsontable th { background-color: #f2f2f2; }
