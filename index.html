@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSV Data Visualizer - Inspired by RawGraphs</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin@4.0.0/dist/chartjs-chart-box-and-violin.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -42,7 +43,7 @@
                 <option value="line" data-area="true">Area</option>
                 <option value="scatter">Scatter</option>
                 <option value="histogram">Histogram (uses Y col)</option>
-                <option value="boxplot">Boxplot (uses Group)</option>
+                <option value="boxplot">Boxplot (uses Y and Group)</option>
                 <option value="pie">Pie (uses X as labels, Y as values)</option>
             </select>
             <button onclick="renderChart()">Render Chart</button>
@@ -52,7 +53,7 @@
         <section id="chartContainer" style="display:none;">
             <canvas id="myChart"></canvas>
             <button onclick="downloadChart('png')">Download PNG</button>
-            <button onclick="downloadChart('svg')">Download SVG</button>
+            <!-- SVG download requires additional plugin; simplified to PNG -->
         </section>
     </div>
     
