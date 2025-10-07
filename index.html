@@ -6,7 +6,7 @@
     <title>CSV Data Visualizer - Inspired by RawGraphs</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4.4.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css">
@@ -44,9 +44,9 @@
             <label>Chart Type:
                 <select id="chartType">
                     <option value="bar">Bar</option>
-                    <option value="bar" data-stacked="true">Stacked Bar</option>
+                    <option value="bar-stacked">Stacked Bar</option>
                     <option value="line">Line</option>
-                    <option value="line" data-area="true">Area</option>
+                    <option value="line-area">Area</option>
                     <option value="scatter">Scatter</option>
                     <option value="histogram">Histogram (uses first Y col)</option>
                     <option value="boxplot">Boxplot (uses Y and Group)</option>
@@ -60,7 +60,7 @@
         
         <!-- Chart Output -->
         <section id="chartContainer" style="display:none;">
-            <canvas id="myChart"></canvas>
+            <canvas id="myChart" width="800" height="400"></canvas>
             <button onclick="downloadChart('png')">Download PNG</button>
         </section>
     </div>
